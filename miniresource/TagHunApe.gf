@@ -47,7 +47,8 @@ instance TagHunApe of TagHun = open Prelude, Coordination in {
 
 ---
 
-
+    startWord = "^" ;
+    endWord = "$" ;
 
     tense : PTense -> Tag = \t ->
       case t of {

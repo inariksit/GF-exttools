@@ -41,7 +41,7 @@ incomplete concrete MiniresourceHun of Miniresource = open Prelude, TagHun in {
 	
 	--Two prefabricated polarities:
 	lin Pos = {s = []};
-	lin Neg = {s = "nem" + adv };
+	lin Neg = {s = wb ("nem" + adv) };
 	
 
 	
@@ -52,7 +52,9 @@ incomplete concrete MiniresourceHun of Miniresource = open Prelude, TagHun in {
 	--Build a clause from a noun phrase (= the subject) and a verb phrase:
 	lin PredVP np vp = { --PredVP : NP -> VP -> Cl
 		s = vp.s ! np.a ; 
-		subj = np.s ++ BIND ++ nom 
+		subj = np.s ++ BIND 
+		     ++ nom ++ BIND 
+		     ++ endWord --Subject case is finalised, can add the $ sign
 	} ;
 	
 	
@@ -62,20 +64,22 @@ incomplete concrete MiniresourceHun of Miniresource = open Prelude, TagHun in {
 	
 	--Build a verb phrase by elevating a verb:
 	lin UseV v = {
-	  s = \\a,t => v.s ++ BIND 
-    				  ++ v.tags ++ BIND 
-    				  ++ tense t ++ BIND 
-    					++ agr a 
+	  s = \\a,t => wb ( v.s ++ BIND 
+    				  		 ++ v.tags ++ BIND 
+    				  		 ++ tense t ++ BIND 
+    							 ++ agr a )
   } ;
 	
 	--Build a verb phrase from a two-place verb and a noun phrase (= the object):
 	lin ComplV2 v2 np = { --ComplV2 : V2 -> NP -> VP
-		s = \\a,t => v2.s ++ BIND 
-						  ++ v2.tags ++ BIND 
-              ++ tense t ++ BIND
-              ++ agr a 
+		s = \\a,t => wb ( v2.s ++ BIND 
+						 			 ++ v2.tags ++ BIND 
+             			 ++ tense t ++ BIND
+          		     ++ agr a )
                 --    ++ BIND ++ np.agr  --Obj agr distinguishes only for def, indef and 2nd person
-   						++ glue np.s v2.compl 
+   						++ np.s ++ BIND
+   						++ v2.compl ++ BIND 
+   						++ endWord --we know object case, can add $
 	} ;
 	
 	--Build a verb phrase from an adjective phrase, using the verb 'to be' ("big" --> "is big"):
@@ -118,8 +122,10 @@ incomplete concrete MiniresourceHun of Miniresource = open Prelude, TagHun in {
 	
 	--Build a noun phrase from a determiner and a common noun:
 	lin DetCN det cn = { --DetCN : Det -> CN -> NP
-		s = det.s ++ BIND 
-     ++ cn.s ++ BIND ++ cn.tags ;
+		s = (wb det.s)
+		 ++ startWord ++ BIND --CN starts with ^, we add end when we know the case
+     ++ cn.s ++ BIND 
+     ++ cn.tags ;
     a = det.a ;
 	} ;
 	
@@ -195,7 +201,7 @@ incomplete concrete MiniresourceHun of Miniresource = open Prelude, TagHun in {
 	lincat AdA = SS ;
 	
 	--A prefabricated ad-adjective:
-	lin very_AdA = {s = "nagyon" + adv } ;
+	lin very_AdA = {s = wb ("nagyon" + adv) } ;
 	
 	
 	
@@ -203,7 +209,7 @@ incomplete concrete MiniresourceHun of Miniresource = open Prelude, TagHun in {
 	lincat Conj = SS ;
 	
 	--Two prefabricated conjunctions:
-	lin and_Conj = {s = "és" + conj } ;
+	lin and_Conj = {s = wb ("és" + conj) } ;
 --	lin or_Conj = {s = "or"};
 
 
