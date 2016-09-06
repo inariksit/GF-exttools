@@ -32,6 +32,8 @@ instance TagHunApe of TagHun = open Prelude, Coordination in {
     nom : Tag = "<nom>" ;
     pres : Tag = "<pres>" ;
     past : Tag = "<past>" ;
+    defi : Tag = "<def>" ;
+    ind : Tag = "<ind>" ;
 
 
 ---

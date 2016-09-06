@@ -113,8 +113,8 @@ incomplete concrete MiniresourceHun of Miniresource = open Prelude, TagHun in {
 	--Some prefabricated noun phrases:
 	--lin i_NP = {s = "me"};
 	--lin youSg_NP = {s = "you"};
-	lin he_NP = { s = "ő" + prn ; 
-								a = Ag Sg P3 } ;
+	-- lin he_NP = { s = "ő" + prn ; 
+	--	 						 a = Ag Sg P3 } ;
 	--lin she_NP = {s = "her"};
 	--lin we_NP = {s = "us"};
 	--lin youPl_NP = {s = "you"};
@@ -137,12 +137,12 @@ incomplete concrete MiniresourceHun of Miniresource = open Prelude, TagHun in {
 	
 	
 	--DETERMINER:
-	lincat Det = Word ** { a : Agr };
+	lincat Det = { s : Str ; a : Agr };
 	
 	--Some prefabricated determiners:
-  lin a_Det = {s = "egy" ; tags = det ; a = Ag Sg P3};
-	lin the_Det = {s = "a" ; tags = det ; a = Ag Sg P3};
-	lin every_Det = {s = "minden" ; tags = det ; a = Ag Sg P3};
+  lin a_Det = {s = "egy" + det + ind ; a = Ag Sg P3};
+	lin the_Det = {s = "a" + det + defi ; a = Ag Sg P3};
+	--lin every_Det = {s = "minden" + det + def ; a = Ag Sg P3};
  --   lin this_Det = {s = "this"};
 	--lin these_Det = {s = "these"};
  --   lin that_Det = {s = "that"};

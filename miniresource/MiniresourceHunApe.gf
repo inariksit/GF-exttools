@@ -5,12 +5,25 @@ concrete MiniresourceHunApe of Miniresource =
  
 lin
   --Some prefabricated noun phrases:
-  --i_NP = {s = "me"};
-  --youSg_NP = {s = "you"};
-  he_NP = { s = "ő" + prn + pers + p3 + mf + sg ;
-	          a = Ag Sg P3 } ;
-	--lin she_NP = {s = "her"};
-	--lin we_NP = {s = "us"};
-	--lin youPl_NP = {s = "you"};
-	--lin they_NP = {s = "them"};;
+  i_NP = pronNP "én" Sg P1 ;
+
+  youSg_NP = pronNP "te" Sg P2 ;
+
+  he_NP = pronNP "ő" Sg P3 ;
+
+  she_NP = pronNP "ő" Sg P3 ;
+
+	we_NP = pronNP "mi" Pl P1 ;
+
+	youPl_NP = pronNP "ti" Pl P2 ;
+
+	they_NP = pronNP "ők" Pl P3 ;
+
+oper
+
+  pronNP : Str -> Number -> Person -> NP = \en,n,p ->
+   let P = person p ;
+       N = num n ;
+   in lin NP { s = startWord + en + prn + pers + P + mf + N ;
+               a = Ag n p } ;
 }

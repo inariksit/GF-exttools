@@ -32,6 +32,8 @@ interface TagHun = open Coordination in {
     nom : Tag ;
     pres : Tag ;
     past : Tag ;
+    defi : Tag ; --definite
+    ind : Tag ; --indefinite
 
 ---
 
