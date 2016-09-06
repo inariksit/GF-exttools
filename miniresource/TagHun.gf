@@ -50,14 +50,9 @@ interface TagHun = open Coordination in {
     emptyTag : Tag ;
 
     startWord, endWord : Str ;
-    wb : Str -> Str = \s -> -- ő<prn><pers><p3><mf><sg><nom>
-      startWord ++ BIND ++ s ++ BIND ++ endWord ;
+    --wb : Str -> Str = \s -> -- ő<prn><pers><p3><mf><sg><nom>
+    --  startWord ++ BIND ++ s ++ BIND ++ endWord ;
 
-    --cons = overload {
-    --  cons : Tag -> Tag -> Tag ;
-    --  cons : Tag -> Tag -> Tag -> Tag ;
-    --  cons : Tag -> Tag -> Tag -> Tag -> Tag ;
-    --} ;
     
 
 }

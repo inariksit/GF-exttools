@@ -22,8 +22,8 @@ lin
 oper
 
   pronNP : Str -> Number -> Person -> NP = \en,n,p ->
-   let P = person p ;
+   let P = per p ;
        N = num n ;
-   in lin NP { s = startWord + en + prn + pers + P + mf + N ;
+   in lin NP { s = en + prn + pers + P + mf + N ;
                a = Ag n p } ;
 }

@@ -52,9 +52,7 @@ incomplete concrete MiniresourceHun of Miniresource = open Prelude, TagHun in {
 	--Build a clause from a noun phrase (= the subject) and a verb phrase:
 	lin PredVP np vp = { --PredVP : NP -> VP -> Cl
 		s = vp.s ! np.a ; 
-		subj = np.s ++ BIND 
-		     ++ nom ++ BIND 
-		     ++ endWord --Subject case is finalised, can add the $ sign
+		subj = np.s ++ BIND ++ nom 
 	} ;
 	
 	
@@ -78,8 +76,7 @@ incomplete concrete MiniresourceHun of Miniresource = open Prelude, TagHun in {
           		     ++ agr a )
                 --    ++ BIND ++ np.agr  --Obj agr distinguishes only for def, indef and 2nd person
    						++ np.s ++ BIND
-   						++ v2.compl ++ BIND 
-   						++ endWord --we know object case, can add $
+   						++ v2.compl 
 	} ;
 	
 	--Build a verb phrase from an adjective phrase, using the verb 'to be' ("big" --> "is big"):
@@ -121,13 +118,10 @@ incomplete concrete MiniresourceHun of Miniresource = open Prelude, TagHun in {
 	--lin they_NP = {s = "them"};
 	
 	--Build a noun phrase from a determiner and a common noun:
-	lin DetCN det cn = { --DetCN : Det -> CN -> NP
-		s = (wb det.s)
-		 ++ startWord ++ BIND --CN starts with ^, we add end when we know the case
-     ++ cn.s ++ BIND 
-     ++ cn.tags ;
-    a = det.a ;
-	} ;
+	lin DetCN det cn =  --DetCN : Det -> CN -> NP
+	let detNum = case det.a of { Ag n p => n } ;
+  in { s = det.s ++ cn.s ! detNum ;
+       a = det.a } ;
 	
 	--Build a new noun phrase by connecting two existing noun phrases with a conjunction:
 	--lin ConjNP co nx ny = { --ConjNP : Conj -> NP -> NP -> NP
@@ -151,26 +145,27 @@ incomplete concrete MiniresourceHun of Miniresource = open Prelude, TagHun in {
 	
 	
 	--COMMON NOUN:
-	lincat CN = Word;
+	lincat CN = { s : Number => Str } ;
 	
 	--Build a common noun by elevating a noun:
-	lin UseN n = n ;  --UseN : N -> CN
+	--UseN : N -> CN
+	lin UseN noun = { s = \\n => noun.s ++ BIND ++ num n } ;
 	
 	--Build a new common noun by adding an adjective phrase to an existing common noun:
 	lin ModCN ap cn = cn ** { --ModCN : AP -> CN -> CN
-		s = cn.s ++ ap.s
+		s = \\n => ap.s ++ cn.s ! n 
 	};
 	
 	
 	
 	--NOUN:
-	lincat N = Word;
+	lincat N = SS ;
 	
 	--Some prefabricated nouns:
 	--lin man_N = {s = "man"};
 	--lin woman_N = {s = "woman"};
 	lin house_N = mkN "ház" ;
-	--lin tree_N = {s = "tree"};
+	lin tree_N = mkN "fa" ;
 	
 	
 	
@@ -212,6 +207,9 @@ incomplete concrete MiniresourceHun of Miniresource = open Prelude, TagHun in {
 	lin and_Conj = {s = wb ("és" + conj) } ;
 --	lin or_Conj = {s = "or"};
 
+linref
+
+  NP = \np -> np.s ++ BIND ++ nom ;
 
 oper
 
@@ -222,6 +220,6 @@ oper
   mkV2 : Str -> Tag -> Word ** {compl : Tag } 
     = \szeret,acc -> { s = szeret ; tags = vblex ; compl = acc } ;
 
-  mkN : Str -> Word = \haz -> { s = haz ; tags = n } ;
+  mkN : Str -> SS = \haz -> { s = haz + n } ;
 
 }

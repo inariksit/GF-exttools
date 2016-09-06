@@ -64,7 +64,7 @@ instance TagHunApe of TagHun = open Prelude, Coordination in {
         Pl => pl 
       } ;
 
-    person : Person -> Tag = \p ->
+    per : Person -> Tag = \p ->
       case p of {
         P1 => p1 ;
         P2 => p2 ;
@@ -74,7 +74,8 @@ instance TagHunApe of TagHun = open Prelude, Coordination in {
 
     agr : Agr -> Tag = \a -> 
       case a of {
-        Ag n p => cons (person p) (num n) 
+        Ag n p => cons (per p) (num n) 
       } ;
 
+    wb = id Str ;
 }
