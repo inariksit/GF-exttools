@@ -32,8 +32,8 @@ execute cmd =
                       put (pgf,[])
                       putln $ linearize c tree
 
-    PApe raw  -> do s <- liftIO $ analyse "hun.automorf.bin" "hun.rlx" raw
-                    execute $ P "MiniresourceHunApe" s
+    PApe raw  -> do ss <- liftIO $ analyse "hun.automorf.bin" "hun.rlx" raw
+                    mapM_ (execute . P "MiniresourceHunApe") ss
 
     P lang s    -> do pgf <- gets fst
                       c <- getConcr' pgf lang
@@ -77,7 +77,7 @@ puts s = liftIO $ putStr s
 --------------------------------------------------------------------------------
 
 
-analyse :: FilePath -> FilePath -> String -> IO String
+analyse :: FilePath -> FilePath -> String -> IO [String]
 analyse transducer cg word = do
   let trace_ = "" -- "--trace"
   (_, Just out1, _, _) <-
@@ -97,14 +97,15 @@ analyse transducer cg word = do
 
   result <- hGetContents' out5
   mapM_ hClose [out1,out2,out3,out4,out5]
-  return $ (unwords . map ape2gf . filter (atLeast 1) . split' (=='^')) result 
+  let lems = filter (not.null) $ split (=='^') result -- [ fa/fa<n><sg><nom>$       : unambiguous
+                                                      -- , nem/nem<adv>/nem<ij>$ ]  : ambiguous
+  return $ map unwords $ mapM ape2gf lems
 
 
 
-
-ape2gf :: String -> String
-ape2gf ape = init lem 
-  where (_wf,lem) = split '/' ape -- (egy, egy<det><ind>$)
+ape2gf :: String -> [String]
+ape2gf ape = map (delete '$') lems
+  where (_wf:lems) = split (=='/') ape -- (egy, egy<det><ind>$)
 
 
 
@@ -119,14 +120,10 @@ hGetContents' hdl = do e <- hIsEOF hdl
                                     cs <- hGetContents' hdl
                                     return (c:cs)
 
-split :: Char -> String -> (String,String)
-split c str = if atLeast 2 res then (res !! 0, res !! 1) else ("", "")
-  where res = split' (==c) str
 
-
-split' :: (a -> Bool) -> [a] -> [[a]]
-split' p [] = []
-split' p xs = takeWhile (not . p) xs : split' p (drop 1 (dropWhile (not . p) xs))
+split :: (a -> Bool) -> [a] -> [[a]]
+split p [] = []
+split p xs = takeWhile (not . p) xs : split p (drop 1 (dropWhile (not . p) xs))
 
 atLeast 0 _  = True
 atLeast _ [] = False
