@@ -4,14 +4,7 @@
 
 We implement a miniature resource grammar in Grammatical Framework (GF) by using 
 resources developed in the Apertium community: a finite-state morphological 
-transducer and disambiguator. The entries in the GF grammar consist of
-just base lemmas with tags added, such as `én<prn><p1><sg><acc>` and
-`én<prn><p1><sg><dat>` instead of *engem* and *nekem*, respectively. The user
-of such our grammar would type in the full forms, and the input is analysed 
-by the external morphological analyser, which is further disambiguated by a 
-Constraint Grammar (CG). Only then is the sentence given to the GF grammar, 
-which will return the syntactic parse tree.
-
+transducer and a disambiguation grammar. 
 Our goals are twofold: to share resources within the rule-based community, as 
 well as to prevent the GF grammar growing in size. Especially for languages with 
 complex morphology, not having to store large inflection tables makes the grammar
@@ -35,11 +28,17 @@ GF lexicon using an existing morphological analyser---this frees the grammar wri
 morphological rules, but does not solve the problem of grammar blowup.
 
 
-The technique we can use to keep parts apart as long as necessary are the records again. In a record we can keep multiple parts of a phrase separate until we can fix their order. Also we applied tables again for features that are not fixed yet.
-
 ## Implementation
 
 We implemented a miniature version (44 functions) of the GF resource grammar \cite{rglLILT} for this work. At this stage, the grammar is not suited for more than toy applications, but the 
+
+The entries in the GF grammar consist of just base lemmas with tags added: for example, the accusative and dative forms of the first person singular pronoun are stored as `én<prn><p1><sg><acc>` and `én<prn><p1><sg><dat>` 
+instead of their inflected forms, *engem* and *nekem* respectively.
+The user of our grammar types in normal Hungarian words, and the input is analysed 
+by the external morphological analyser, which is further disambiguated by a 
+Constraint Grammar (CG). Only then is the sentence given to the GF grammar, 
+which will return the syntactic parse tree.
+
 
 ## Discussion
 
