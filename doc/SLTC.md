@@ -16,18 +16,18 @@ Our goals are twofold: to share resources within the rule-based community, as
 well as to prevent the GF grammar growing in size. Especially for languages with 
 complex morphology, not having to store large inflection tables makes the grammar
 smaller and faster. As for development effort, we hope that the external resources
-would also save time in the grammar writing process; however, the design we propose
-is arguably less intuitive than writing a traditional GF grammar. The next steps are 
-to scale up to a full resource grammar, and do tagset stuff.
-, and scaling up to 
-a full resource grammar, we may find incompatibilities in the design of the morphology.
-the development of the miniature resource, and 
-there 
+would also save time in the grammar writing process. The next steps are to scale up
+to a full resource grammar, and parametrise the grammar for different tagsets.
 
 
 ## Introduction
 
-Grammatical Framework is a 
+Grammatical Framework (GF, \cite{aarne}) is a grammar formalism and a programming language for writing multilingual grammars.
+Like xxx, GF makes a distinction between phenogrammatical and tectogrammatical structure; in GF terms expressed as *abstract* and *concrete* syntax. 
+By allowing multiple concrete syntaxes for a single abstract syntax, GF grammars are a natural choice for interlingual translation.
+
+One of the most important contributions of GF is its Resource Grammar Library \cite{rglLILT}, which contains 40 languages as of September 2016. All the languages share the same core abstract syntax, and each language can have an extra module for constructions that are particular to that language.
+
 Usually, writing the morphology in GF is the first step in starting a resource grammar. A new grammar writer can easily spend
 weeks in investigating old grammar books. Even if the language has a finite-state morphology, the representation is very
 different from the GF morphology, and hardly lends itself for inspiration. Another option is to generate forms to feed in the
@@ -35,7 +35,11 @@ GF lexicon using an existing morphological analyser---this frees the grammar wri
 morphological rules, but does not solve the problem of grammar blowup.
 
 
+The technique we can use to keep parts apart as long as necessary are the records again. In a record we can keep multiple parts of a phrase separate until we can fix their order. Also we applied tables again for features that are not fixed yet.
+
 ## Implementation
+
+We implemented a miniature version (44 functions) of the GF resource grammar \cite{rglLILT} for this work. At this stage, the grammar is not suited for more than toy applications, but the 
 
 ## Discussion
 
