@@ -101,7 +101,7 @@ the tables. We will illustrate the process with a grammar that has
 four categories: NP, V, VP and S, and two syntactic functions: complementation
 and predication. The \texttt{Compl} function combines a NP and a V
 into a VP, and \texttt{Pred} combines a NP and a VP into an S.
-The abstract syntax of such a grammar is shown below.
+The abstract syntax of this grammar is shown below.
  
 
 
@@ -131,7 +131,7 @@ The abstract syntax of such a grammar is shown below.
 %   }
 % \end{verbatim}
 
-Next, we write a concrete syntax for a language where verbs conjugate
+Next, we write a concrete syntax for a language where verbs inflect
 for agreement and nouns for case. 
 We introduce the parameters \texttt{Case} and \texttt{Agr}, and create
 the categories specific to this language.
@@ -169,9 +169,9 @@ choose the right agreement from the VP, depending on the subject NP.
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{lin }
-  \DataTypeTok{Compl} \NormalTok{verb obj }\FunctionTok{=}
+  \DataTypeTok{Compl} \NormalTok{v obj }\FunctionTok{=}
    \NormalTok{table \{ agr }\OtherTok{=>} \NormalTok{verb}\FunctionTok{.}\NormalTok{s }\FunctionTok{!} \NormalTok{agr}
-               \FunctionTok{++} \NormalTok{obj}\FunctionTok{.}\NormalTok{s }\FunctionTok{!} \NormalTok{verb}\FunctionTok{.}\NormalTok{compl \} ;}
+               \FunctionTok{++} \NormalTok{obj}\FunctionTok{.}\NormalTok{s }\FunctionTok{!} \NormalTok{v}\FunctionTok{.}\NormalTok{compl \} ;}
 
   \DataTypeTok{Pred} \NormalTok{subj vp }\FunctionTok{=} \NormalTok{subj }\FunctionTok{!} \DataTypeTok{Nom} 
               \FunctionTok{++} \NormalTok{vp }\FunctionTok{!} \NormalTok{subj}\FunctionTok{.}\NormalTok{agr ;}
@@ -188,6 +188,11 @@ choose the right agreement from the VP, depending on the subject NP.
 %               ++ vp ! subj.agr ;
 
 % \end{verbatim}
+
+Because of these parameters, the grammar will produce only grammatical
+sentences. Given the NP \emph{a fa} `the tree' and the verb
+\emph{szeret} `love', the grammar will output \emph{a fa szereti a
+  f\'{a}t} `the tree loves the tree'.
 
 On the high level, this grammar design looks simple. 
 But under the hood, the GF source code is compiled into a low-level
@@ -206,30 +211,33 @@ morphologically complex languages often suffer from performance issues.
 In the version with an external morphological analyser, all lexical
 entries contain only a base form, along with a POS tag. The features,
 which were used to select right forms from the inflection tables, are
-now replaced with a string field for \emph{tags}, as in the following.
+now replaced with string fields for \emph{tags}, such as following.
 
 \begin{Shaded}
 \begin{Highlighting}[]
   \NormalTok{lincat}
     \DataTypeTok{S}  \FunctionTok{=} \DataTypeTok{Str} \NormalTok{;}
-    \DataTypeTok{VP} \FunctionTok{=} \DataTypeTok{Str} \NormalTok{;}
+    \DataTypeTok{VP} \FunctionTok{=} \NormalTok{\{ verb }\FunctionTok{:} \DataTypeTok{Str} \NormalTok{; obj }\FunctionTok{:} \DataTypeTok{Str} \NormalTok{\} ;}
     \DataTypeTok{NP} \FunctionTok{=} \NormalTok{\{ s }\FunctionTok{:} \DataTypeTok{Str} \NormalTok{; agrTag }\FunctionTok{:} \DataTypeTok{Str} \NormalTok{\} ;}
     \DataTypeTok{V2} \FunctionTok{=} \NormalTok{\{ s }\FunctionTok{:} \DataTypeTok{Str} \NormalTok{; complTag }\FunctionTok{:} \DataTypeTok{Str} \NormalTok{\} ;}
 \end{Highlighting}
 \end{Shaded}
 
+
 Then, the syntactic functions can be reduced into concatenating tags,
 and taking care of the right word order. Below are the same syntactic
 functions for complementation and predication.
 
+
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{lin }
-  \DataTypeTok{Compl} \NormalTok{verb obj }\FunctionTok{=} \NormalTok{verb}\FunctionTok{.}\NormalTok{s }
-                \FunctionTok{++} \NormalTok{(obj}\FunctionTok{.}\NormalTok{s }\FunctionTok{+} \NormalTok{verb}\FunctionTok{.}\NormalTok{complTag) ;}
+  \DataTypeTok{Compl} \NormalTok{v o }\FunctionTok{=} \NormalTok{\{ verb }\FunctionTok{=} \NormalTok{v}\FunctionTok{.}\NormalTok{s ;}
+                \NormalTok{obj }\FunctionTok{=} \NormalTok{o}\FunctionTok{.}\NormalTok{s }\FunctionTok{+} \NormalTok{v}\FunctionTok{.}\NormalTok{complTag \} ;}
 
   \DataTypeTok{Pred} \NormalTok{subj vp }\FunctionTok{=} \NormalTok{(subj }\FunctionTok{+} \StringTok{"<nom>"}\NormalTok{)}
-              \FunctionTok{++} \NormalTok{(vp }\FunctionTok{+} \NormalTok{subj}\FunctionTok{.}\NormalTok{agrTag) ;}
+              \FunctionTok{++} \NormalTok{(vp}\FunctionTok{.}\NormalTok{verb }\FunctionTok{+} \NormalTok{subj}\FunctionTok{.}\NormalTok{agrTag)}
+              \FunctionTok{++} \NormalTok{vp}\FunctionTok{.}\NormalTok{obj ;}
 \end{Highlighting}
 \end{Shaded}
 
