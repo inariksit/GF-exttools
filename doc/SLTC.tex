@@ -1,0 +1,305 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage{sltc2016}
+\usepackage{url}
+\usepackage{framed}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}
+,fontsize=\small}
+% Add ',fontsize=\small' for more characters per line
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{{#1}}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{{#1}}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{{#1}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{{#1}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{{#1}}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\RegionMarkerTok}[1]{{#1}}
+\newcommand{\ErrorTok}[1]{\textbf{{#1}}}
+\newcommand{\NormalTok}[1]{{#1}}
+
+\begin{document}
+
+\date{\today}
+\title{Outsourcing morphology in Grammatical Framework: a case study for Hungarian}
+\name{Inari Listenmaa}
+\address{Department of Computer Science and Engineering \\ University of Gothenburg and Chalmers University of Technology \\ \tt inari@chalmers.se}
+
+
+\abstract{We implement a miniature resource grammar in Grammatical Framework (GF) by using 
+resources developed in the Apertium community: a finite-state morphological 
+transducer and a disambiguation grammar. 
+Our goals are twofold: to share resources within the rule-based community, as 
+well as to prevent the GF grammar growing in size. Especially for languages with 
+complex morphology, not having to store large inflection tables makes the grammar
+smaller and faster. As for development effort, we hope that the external resources
+would also save time in the grammar writing process. The next steps are to scale up
+to a full resource grammar, and parametrise the grammar for different tagsets.}
+
+\maketitleabstract
+
+
+\section{Introduction}
+\label{sec:introduction}
+Grammatical Framework (GF, \cite{ranta2004jfp}) is a grammar formalism and a programming 
+language for writing multilingual grammars.
+A GF grammar consists of an \emph{abstract syntax}, which declares the
+categories and constructions in the grammar, and a number of \emph{concrete
+  syntaxes}, where the categories and constructions are implemented,
+separately for each languages.
+By allowing multiple concrete syntaxes for a single abstract syntax, GF is a natural 
+choice for interlingual translation.
+
+One of the most important contributions of GF is its Resource Grammar Library 
+\cite{ranta2009lilt}, which contains 40 languages as of September 2016. All the languages 
+share the same core abstract syntax, and each language can have an extra module for 
+constructions that are particular to that language. Via the common core, we can 
+translate basic syntactic structures between any pair of the 40 languages; any new 
+language added to the library will be connected to all of the existing languages.
+
+Typically, writing a morphological description is the first step in starting a resource grammar.
+A new grammar writer can easily spend weeks or months in defining inflection classes 
+and writing morphophonological transformation rules for their language. 
+Such a description in GF may well be valuable on its own right: it may provide 
+insights about the morphological complexity of a language
+\cite{detrez_ranta2012eacl}, or even lend itself for language description.
+However, creating a morphological description in GF is time-consuming, and the result 
+is often less efficient than a finite-state description.
+If a new RGL language already has morphological resources, using them would ideally
+speed up both development and performance of the resource grammar.
+%\footnote{Of course, we are not denying anyone their fun of writing a morphological description in GF.}
+
+
+\section{Implementation}
+
+We implemented a miniature version (44 functions) of the GF resource
+grammar \cite{ranta2009lilt} for this experiment. 
+At this stage, the grammar is not suited for more than toy
+applications, but the effort of grammar writing seems promising.
+The development of this initial grammar took just a
+couple of hours; the author has no knowledge of Hungarian, but years
+of experience with GF and Apertium.
+
+In the following sections, we present briefly the traditional way of writing GF
+grammars, followed by the new method.
+
+\subsection{Traditional GF grammar}
+
+A self-contained GF grammar stores inflection tables in each lexical
+entry. Then, the syntactic functions select the appropriate forms from
+the tables. We will illustrate the process with a grammar that has
+four categories: NP, V, VP and S, and two syntactic functions: complementation
+and predication. The \texttt{Compl} function combines a NP and a V
+into a VP, and \texttt{Pred} combines a NP and a VP into an S.
+The abstract syntax of such a grammar is shown below.
+ 
+
+
+\begin{Shaded}
+\begin{Highlighting}[]
+  \NormalTok{abstract }\DataTypeTok{Grammar} \FunctionTok{=} \NormalTok{\{}
+
+  \NormalTok{cat }
+    \DataTypeTok{S} \NormalTok{; }\DataTypeTok{NP} \NormalTok{; }\DataTypeTok{VP} \NormalTok{; }\DataTypeTok{V} \NormalTok{;}
+
+  \NormalTok{fun}
+    \DataTypeTok{Pred} \FunctionTok{:} \DataTypeTok{NP} \OtherTok{->} \DataTypeTok{VP} \OtherTok{->} \DataTypeTok{S} \NormalTok{;}
+    \DataTypeTok{Compl} \FunctionTok{:} \DataTypeTok{V} \OtherTok{->} \DataTypeTok{NP} \OtherTok{->} \DataTypeTok{VP} \NormalTok{;}
+  \NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+% \begin{verbatim}
+%   abstract Grammar = {
+
+%   cat 
+%     S ; NP ; VP ; V ;
+
+%   fun
+%     Pred : NP -> VP -> S ;
+%     Compl : V -> NP -> VP ;
+%   }
+% \end{verbatim}
+
+Next, we write a concrete syntax for a language where verbs conjugate
+for agreement and nouns for case. 
+We introduce the parameters \texttt{Case} and \texttt{Agr}, and create
+the categories specific to this language.
+
+
+\begin{Shaded}
+\begin{Highlighting}[]
+  \NormalTok{param}
+    \DataTypeTok{Case} \FunctionTok{=} \DataTypeTok{Nom} \FunctionTok{|} \DataTypeTok{Acc} \FunctionTok{|} \DataTypeTok{Dat} \FunctionTok{|} \FunctionTok{...} \NormalTok{;}
+    \DataTypeTok{Agr} \FunctionTok{=} \DataTypeTok{SgP1} \FunctionTok{|} \DataTypeTok{SgP2} \FunctionTok{|} \FunctionTok{...} \FunctionTok{|} \DataTypeTok{PlP3} \NormalTok{;}
+  \NormalTok{lincat }
+    \DataTypeTok{S}  \FunctionTok{=} \DataTypeTok{Str} \NormalTok{;}
+    \DataTypeTok{VP} \FunctionTok{=} \DataTypeTok{Agr} \OtherTok{=>} \DataTypeTok{Str} \NormalTok{;}
+    \DataTypeTok{V} \FunctionTok{=} \NormalTok{\{ s }\FunctionTok{:} \DataTypeTok{Agr} \OtherTok{=>} \DataTypeTok{Str} \NormalTok{; compl }\FunctionTok{:} \DataTypeTok{Case} \NormalTok{\} ;}
+    \DataTypeTok{NP} \FunctionTok{=} \NormalTok{\{ s }\FunctionTok{:} \DataTypeTok{Case} \OtherTok{=>} \DataTypeTok{Str} \NormalTok{; agr }\FunctionTok{:} \DataTypeTok{Agr} \NormalTok{\} ;}
+\end{Highlighting}
+\end{Shaded}
+
+%\begin{verbatim}
+%  param
+%    Case = Nom | Acc | Dat | ... ;
+%    Agr = SgP1 | SgP2 | ... | PlP3 ;
+%  lincat 
+%    S  = Str ;
+%    VP = Agr => Str ;
+%    V = { s : Agr => Str ; compl : Case } ;
+%    NP = { s : Case => Str ; agr : Agr } ;
+%\end{verbatim}
+
+Then we implement the functions which operate on the given categories.
+The complementation function must choose a right case from the object
+NP, depending on the verb. Likewise, the predication function must
+choose the right agreement from the VP, depending on the subject NP.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lin }
+  \DataTypeTok{Compl} \NormalTok{verb obj }\FunctionTok{=}
+   \NormalTok{table \{ agr }\OtherTok{=>} \NormalTok{verb}\FunctionTok{.}\NormalTok{s }\FunctionTok{!} \NormalTok{agr}
+               \FunctionTok{++} \NormalTok{obj}\FunctionTok{.}\NormalTok{s }\FunctionTok{!} \NormalTok{verb}\FunctionTok{.}\NormalTok{compl \} ;}
+
+  \DataTypeTok{Pred} \NormalTok{subj vp }\FunctionTok{=} \NormalTok{subj }\FunctionTok{!} \DataTypeTok{Nom} 
+              \FunctionTok{++} \NormalTok{vp }\FunctionTok{!} \NormalTok{subj}\FunctionTok{.}\NormalTok{agr ;}
+\end{Highlighting}
+\end{Shaded}
+
+% \begin{verbatim}
+% lin 
+%   Compl verb obj =
+%    table { agr => verb.s ! agr
+%                ++ obj.s ! verb.compl } ;
+
+%   Pred subj vp = subj ! Nom 
+%               ++ vp ! subj.agr ;
+
+% \end{verbatim}
+
+On the high level, this grammar design looks simple. 
+But under the hood, the GF source code is compiled into a low-level
+format. Adding a new value to a parameter or a new field to a record 
+does not change much in the high-level rules, but each addition
+multiplies the number of low-level rules. As a result, GF grammars for
+morphologically complex languages often suffer from performance issues.
+
+% Nouns, verbs and other inflecting categories contain large tables, for all
+%  combinations of number and case. The verb, likewise, contains all the
+%  conjugation, including tense, mood, person, aspect, and even
+%  non-finite forms (e.g. {\em singing}). 
+
+\subsection{GF grammar with external resources}
+
+In the version with an external morphological analyser, all lexical
+entries contain only a base form, along with a POS tag. The features,
+which were used to select right forms from the inflection tables, are
+now replaced with a string field for \emph{tags}, as in the following.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+  \NormalTok{lincat}
+    \DataTypeTok{S}  \FunctionTok{=} \DataTypeTok{Str} \NormalTok{;}
+    \DataTypeTok{VP} \FunctionTok{=} \DataTypeTok{Str} \NormalTok{;}
+    \DataTypeTok{NP} \FunctionTok{=} \NormalTok{\{ s }\FunctionTok{:} \DataTypeTok{Str} \NormalTok{; agrTag }\FunctionTok{:} \DataTypeTok{Str} \NormalTok{\} ;}
+    \DataTypeTok{V2} \FunctionTok{=} \NormalTok{\{ s }\FunctionTok{:} \DataTypeTok{Str} \NormalTok{; complTag }\FunctionTok{:} \DataTypeTok{Str} \NormalTok{\} ;}
+\end{Highlighting}
+\end{Shaded}
+
+Then, the syntactic functions can be reduced into concatenating tags,
+and taking care of the right word order. Below are the same syntactic
+functions for complementation and predication.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lin }
+  \DataTypeTok{Compl} \NormalTok{verb obj }\FunctionTok{=} \NormalTok{verb}\FunctionTok{.}\NormalTok{s }
+                \FunctionTok{++} \NormalTok{(obj}\FunctionTok{.}\NormalTok{s }\FunctionTok{+} \NormalTok{verb}\FunctionTok{.}\NormalTok{complTag) ;}
+
+  \DataTypeTok{Pred} \NormalTok{subj vp }\FunctionTok{=} \NormalTok{(subj }\FunctionTok{+} \StringTok{"<nom>"}\NormalTok{)}
+              \FunctionTok{++} \NormalTok{(vp }\FunctionTok{+} \NormalTok{subj}\FunctionTok{.}\NormalTok{agrTag) ;}
+\end{Highlighting}
+\end{Shaded}
+
+% The entries in the GF grammar consist of just base lemmas with tags
+% added: for example, the accusative and dative forms of the second
+% person singular pronoun are stored as \texttt{te<prn><p2><sg><acc>}
+% and \texttt{te<prn><p2><sg><dat>} instead of their inflected forms,
+% \emph{téged} and \emph{neked} respectively.
+With this setup, the GF trees are linearised into what looks like
+Apertium analyses: for example,
+\texttt{mi<prn><pers><p1><mf><pl><nom>} \texttt{ j\'{a}r<vblex><past><p3><pl>} for `we walked'.
+
+\subsection{Pipeline}
+
+The user of the grammar types in normal Hungarian words, and the input is analysed 
+by the external morphological analyser, which is further disambiguated by a 
+Constraint Grammar (CG). Only then is the sentence given to the GF grammar, 
+which will return the syntactic parse tree.
+The grammar can also beused in translation from another language
+to Hungarian. First the source language is analysed into a GF tree,
+then the tree is linearised into Hungarian with tags. To get actual
+Hungarian, the external morphological analyser is called to generate
+the inflected forms from the tags.
+
+
+
+\section{Discussion}
+
+
+Adding external tools into a GF grammar introduces more dependencies,
+which makes the system more complex. In comparison, a 100 \% GF
+grammar is easier to understand, and immune to the eventual changes in
+the other systems. It is understandable if a grammar writer decides to
+value independence and clarity over the convenience of reusing resources.
+Furthermore, we have only implemented a fragment of the resource grammar:
+scaling up to the full grammar may reveal challenges in the approach,
+which would increase the development effort.
+
+On a more speculative note, the GF grammar could work as a unification effort.
+One of the most unnecessary annoyances in computational linguistics is
+tagset incompatibility. To demonstrate, table~\ref{table:treeDoesntLove} shows two parses of the Hungarian sentence \emph{a fa nem szeret engem} 'the tree doesn't love me', in Ocamorph and Apertium.
+
+
+\begin{table}[t!]
+\center
+    \begin{tabular}{l|l}
+    Ocamorph tagset & Apertium tagset \\ \hline
+    \texttt{a/ART}       & \texttt{a<det><def>}       \\
+    \texttt{fa/NOUN}              & \texttt{fa<n><sg><nom>}            \\
+    \texttt{nem/ADV}     &  \texttt{nem<adv>} \\
+    \texttt{nem/UTT-INT} &  \texttt{nem<ij>}  \\
+    \texttt{szeret/VERB}          & \texttt{szeret<vblex><pri><p3><sg>} \\
+    \texttt{\'{e}n/NOUN<PERS<1>><CAS<ACC>>} & \texttt{\'{e}n<prn><pers><p1><mf><sg><acc>}  \\
+    \end{tabular}
+\label{table:treeDoesntLove}
+\caption{Morphological analyses of the Hungarian sentence \emph{a fa
+    nem szeret engem} `the tree doesn't love me'}
+\end{table}
+
+[TODO: functors for tagset variation]
+
+\section{Conclusion}
+
+Small scale experiment, very little effort so far. 
+Should test correctness.
+Nice showcase in sharing resources.
+
+
+\bibliographystyle{sltc2016}
+\bibliography{GF-RG.bib}
+
+
+\end{document}
