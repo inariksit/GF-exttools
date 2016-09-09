@@ -56,15 +56,15 @@ language for writing multilingual grammars.
 A GF grammar consists of an \emph{abstract syntax}, which declares the
 categories and constructions in the grammar, and a number of \emph{concrete
   syntaxes}, where the categories and constructions are implemented,
-separately for each languages.
+separately for each language.
 By allowing multiple concrete syntaxes for a single abstract syntax, GF is a natural 
 choice for interlingual translation.
 
 One of the most important contributions of GF is its Resource Grammar Library 
-\cite{ranta2009lilt}, which contains 40 languages as of September 2016. All the languages 
+\cite{ranta2009lilt}, which contains 31 languages as of September 2016. All the languages 
 share the same core abstract syntax, and each language can have an extra module for 
 constructions that are particular to that language. Via the common core, we can 
-translate basic syntactic structures between any pair of the 40 languages; any new 
+translate basic syntactic structures between any pair of the 31 languages; any new 
 language added to the library will be connected to all of the existing languages.
 
 Typically, writing a morphological description is the first step in starting a resource grammar.
@@ -84,8 +84,8 @@ speed up both development and performance of the resource grammar.
 
 We implemented a miniature version (44 functions) of the GF resource
 grammar \cite{ranta2009lilt} for this experiment. 
-At this stage, the grammar is not suited for more than toy
-applications, but the effort of grammar writing seems promising.
+%At this stage, the grammar is not suited for more than toy
+%applications, but the effort of grammar writing seems promising.
 The development of this initial grammar took just a
 couple of hours; the author has no knowledge of Hungarian, but years
 of experience with GF and Apertium.
@@ -103,7 +103,7 @@ and predication. The \texttt{Compl} function combines a NP and a V
 into a VP, and \texttt{Pred} combines a NP and a VP into an S.
 The abstract syntax of this grammar is shown below.
  
-
+\vspace{-1mm}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -131,11 +131,14 @@ The abstract syntax of this grammar is shown below.
 %   }
 % \end{verbatim}
 
+\vspace{-1mm}
+
 Next, we write a concrete syntax for a language where verbs inflect
 for agreement and nouns for case. 
 We introduce the parameters \texttt{Case} and \texttt{Agr}, and create
 the categories specific to this language.
 
+\vspace{-1mm}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -166,15 +169,17 @@ The complementation function must choose a right case from the object
 NP, depending on the verb. Likewise, the predication function must
 choose the right agreement from the VP, depending on the subject NP.
 
+\vspace{-1mm}
+
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{lin }
-  \DataTypeTok{Compl} \NormalTok{v obj }\FunctionTok{=}
-   \NormalTok{table \{ agr }\OtherTok{=>} \NormalTok{verb}\FunctionTok{.}\NormalTok{s }\FunctionTok{!} \NormalTok{agr}
-               \FunctionTok{++} \NormalTok{obj}\FunctionTok{.}\NormalTok{s }\FunctionTok{!} \NormalTok{v}\FunctionTok{.}\NormalTok{compl \} ;}
+  \NormalTok{lin }
+    \DataTypeTok{Compl} \NormalTok{v obj }\FunctionTok{=}
+     \NormalTok{table \{ agr }\OtherTok{=>} \NormalTok{verb}\FunctionTok{.}\NormalTok{s }\FunctionTok{!} \NormalTok{agr}
+                 \FunctionTok{++} \NormalTok{obj}\FunctionTok{.}\NormalTok{s }\FunctionTok{!} \NormalTok{v}\FunctionTok{.}\NormalTok{compl \} ;}
 
-  \DataTypeTok{Pred} \NormalTok{subj vp }\FunctionTok{=} \NormalTok{subj }\FunctionTok{!} \DataTypeTok{Nom} 
-              \FunctionTok{++} \NormalTok{vp }\FunctionTok{!} \NormalTok{subj}\FunctionTok{.}\NormalTok{agr ;}
+    \DataTypeTok{Pred} \NormalTok{subj vp }\FunctionTok{=} \NormalTok{subj }\FunctionTok{!} \DataTypeTok{Nom} 
+                \FunctionTok{++} \NormalTok{vp }\FunctionTok{!} \NormalTok{subj}\FunctionTok{.}\NormalTok{agr ;}
 \end{Highlighting}
 \end{Shaded}
 
@@ -207,6 +212,7 @@ morphologically complex languages often suffer from performance issues.
 %  non-finite forms (e.g. {\em singing}). 
 
 \subsection{GF grammar with external resources}
+\label{sec:GFext}
 
 In the version with an external morphological analyser, all lexical
 entries contain only a base form, along with a POS tag. The features,
@@ -254,56 +260,71 @@ Apertium analyses: for example,
 
 The user of the grammar types in normal Hungarian words, and the input is analysed 
 by the external morphological analyser, which is further disambiguated by a 
-Constraint Grammar (CG). Only then is the sentence given to the GF grammar, 
+Constraint Grammar \cite{karlsson1995constraint}. Only then is the sentence given to the GF grammar, 
 which will return the syntactic parse tree.
-The grammar can also beused in translation from another language
+The grammar can also be used in translation from another language
 to Hungarian. First the source language is analysed into a GF tree,
 then the tree is linearised into Hungarian with tags. To get actual
-Hungarian, the external morphological analyser is called to generate
+Hungarian, the morphological analyser is called to generate
 the inflected forms from the tags.
 
 
 
 \section{Discussion}
 
+Adding external tools into a GF grammar makes the system more
+complex. In comparison, a 100 \% GF grammar is easier to understand,
+and immune to eventual changes in the other systems. Hence a grammar
+writer may decide to value independence and clarity over the convenience of reusing resources.
+%Furthermore, we have only implemented a fragment of the resource grammar:
+%scaling up to the full grammar may reveal challenges in the approach,
+%which would increase the development effort.
+If we only want to speed up development, we can use the FS morphology
+inside GF: generate all forms of the FS lexicon, and convert it into GF
+tables. 
+% \footnote{Aarne Ranta (personal
+%   communication) notes that the original reason to develop
+%   morphology in GF was that FS morphologies were proprietary.}
+%This frees us from writing morphological operations in GF; however, it would not solve the
+%problem of performance. 
+Conversely, a GF morphology can be converted
+into a FS morphology, via LEXC output from GF. This would aid
+performance, but not development.
 
-Adding external tools into a GF grammar introduces more dependencies,
-which makes the system more complex. In comparison, a 100 \% GF
-grammar is easier to understand, and immune to the eventual changes in
-the other systems. It is understandable if a grammar writer decides to
-value independence and clarity over the convenience of reusing resources.
-Furthermore, we have only implemented a fragment of the resource grammar:
-scaling up to the full grammar may reveal challenges in the approach,
-which would increase the development effort.
+Another benefit of a GF grammar is mapping from one tagset to another.
+%One of the most unnecessary annoyances in computational linguistics is
+%tagset incompatibility. 
+To demonstrate, Table~\ref{table:engem} shows two analyses of the Hungarian first
+person singular pronoun \emph{engem} `me', in Morphdb.hu \cite{tron2006morphdb} and Apertium.
+If we wanted to support both tagsets, we could simply write a
+second concrete syntax; or better yet, use the GF module system to
+parametrise over the concrete tags and the functions to combine
+them. The latter will require more work than the straight-forward
+solution shown in Section~\ref{sec:GFext}, but it is preferable to duplicating the work in syntax.
 
-On a more speculative note, the GF grammar could work as a unification effort.
-One of the most unnecessary annoyances in computational linguistics is
-tagset incompatibility. To demonstrate, table~\ref{table:treeDoesntLove} shows two parses of the Hungarian sentence \emph{a fa nem szeret engem} 'the tree doesn't love me', in Ocamorph and Apertium.
-
-
-\begin{table}[t!]
+\begin{table}[t]
 \center
-    \begin{tabular}{l|l}
-    Ocamorph tagset & Apertium tagset \\ \hline
-    \texttt{a/ART}       & \texttt{a<det><def>}       \\
-    \texttt{fa/NOUN}              & \texttt{fa<n><sg><nom>}            \\
-    \texttt{nem/ADV}     &  \texttt{nem<adv>} \\
-    \texttt{nem/UTT-INT} &  \texttt{nem<ij>}  \\
-    \texttt{szeret/VERB}          & \texttt{szeret<vblex><pri><p3><sg>} \\
-    \texttt{\'{e}n/NOUN<PERS<1>><CAS<ACC>>} & \texttt{\'{e}n<prn><pers><p1><mf><sg><acc>}  \\
+    \begin{tabular}{r|l}
+   Morphdb.hu  & \texttt{\'{e}n/NOUN<PERS<1>><CAS<ACC>>} \\ \hline
+   Apertium    & \texttt{\'{e}n<prn><pers><p1><mf><sg><acc>} \\
     \end{tabular}
-\label{table:treeDoesntLove}
-\caption{Morphological analyses of the Hungarian sentence \emph{a fa
-    nem szeret engem} `the tree doesn't love me'}
+\label{table:engem}
+\caption{Analyses for the pronoun \emph{engem} `me'}
 \end{table}
 
-[TODO: functors for tagset variation]
+\vspace{-2mm}
 
 \section{Conclusion}
 
-Small scale experiment, very little effort so far. 
-Should test correctness.
-Nice showcase in sharing resources.
+The experiment has been small, but promising in terms of effort.
+We estimate it would take days to write similar fragment in full GF,
+especially for a developer who doesn't know the language; in contrast,
+this grammar took merely hours to write.
+Evaluating the performance and correctness, as well as scaling up to a
+full resource grammar, is left for future work.
+In conclusion, we are happy with the results, and hope the experiment
+will encourage more sharing of resources within the rule-based community.
+
 
 
 \bibliographystyle{sltc2016}
