@@ -237,13 +237,13 @@ functions for complementation and predication.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{lin }
-  \DataTypeTok{Compl} \NormalTok{v o }\FunctionTok{=} \NormalTok{\{ verb }\FunctionTok{=} \NormalTok{v}\FunctionTok{.}\NormalTok{s ;}
-                \NormalTok{obj }\FunctionTok{=} \NormalTok{o}\FunctionTok{.}\NormalTok{s }\FunctionTok{+} \NormalTok{v}\FunctionTok{.}\NormalTok{complTag \} ;}
+  \NormalTok{lin }
+    \DataTypeTok{Compl} \NormalTok{v o }\FunctionTok{=} \NormalTok{\{ verb }\FunctionTok{=} \NormalTok{v}\FunctionTok{.}\NormalTok{s ;}
+                  \NormalTok{obj }\FunctionTok{=} \NormalTok{o}\FunctionTok{.}\NormalTok{s }\FunctionTok{+} \NormalTok{v}\FunctionTok{.}\NormalTok{complTag \} ;}
 
-  \DataTypeTok{Pred} \NormalTok{subj vp }\FunctionTok{=} \NormalTok{(subj }\FunctionTok{+} \StringTok{"<nom>"}\NormalTok{)}
-              \FunctionTok{++} \NormalTok{(vp}\FunctionTok{.}\NormalTok{verb }\FunctionTok{+} \NormalTok{subj}\FunctionTok{.}\NormalTok{agrTag)}
-              \FunctionTok{++} \NormalTok{vp}\FunctionTok{.}\NormalTok{obj ;}
+    \DataTypeTok{Pred} \NormalTok{subj vp }\FunctionTok{=} \NormalTok{(subj }\FunctionTok{+} \StringTok{"<nom>"}\NormalTok{)}
+                \FunctionTok{++} \NormalTok{(vp}\FunctionTok{.}\NormalTok{verb }\FunctionTok{+} \NormalTok{subj}\FunctionTok{.}\NormalTok{agrTag)}
+                \FunctionTok{++} \NormalTok{vp}\FunctionTok{.}\NormalTok{obj ;}
 \end{Highlighting}
 \end{Shaded}
 
@@ -272,31 +272,32 @@ the inflected forms from the tags.
 
 \section{Discussion}
 
-Adding external tools into a GF grammar makes the system more
-complex. In comparison, a 100 \% GF grammar is easier to understand,
-and immune to eventual changes in the other systems. Hence a grammar
-writer may decide to value independence and clarity over the convenience of reusing resources.
+Adding external tools into a GF grammar  
+makes the system more complex. In comparison, a 100 \% GF grammar is
+easier to understand, and immune to eventual changes in the other systems. 
+%Hence a grammar
+%writer may decide to value independence and clarity over the convenience of reusing resources.
 %Furthermore, we have only implemented a fragment of the resource grammar:
 %scaling up to the full grammar may reveal challenges in the approach,
 %which would increase the development effort.
-If we only want to speed up development, we can use the FS morphology
+If we only wanted to speed up development, we could use the FS morphology
 inside GF: generate all forms of the FS lexicon, and convert it into GF
-tables. 
+inflection tables. This solution would save the time in writing
+morphological rules, but not affect the size of the grammar.
 % \footnote{Aarne Ranta (personal
 %   communication) notes that the original reason to develop
 %   morphology in GF was that FS morphologies were proprietary.}
 %This frees us from writing morphological operations in GF; however, it would not solve the
 %problem of performance. 
-Conversely, a GF morphology can be converted
-into a FS morphology, via LEXC output from GF. This would aid
-performance, but not development.
+If there is already a GF morphology, we can also convert it into a FS
+morphology, via LEXC output from GF: this would aid performance, but not development.
 
-Another benefit of a GF grammar is mapping from one tagset to another.
+There is another potential benefit of a GF grammar with tags: mapping from one tagset to another.
 %One of the most unnecessary annoyances in computational linguistics is
 %tagset incompatibility. 
 To demonstrate, Table~\ref{table:engem} shows two analyses of the Hungarian first
 person singular pronoun \emph{engem} `me', in Morphdb.hu \cite{tron2006morphdb} and Apertium.
-If we wanted to support both tagsets, we could simply write a
+If we want to support both tagsets, we can write a
 second concrete syntax; or better yet, use the GF module system to
 parametrise over the concrete tags and the functions to combine
 them. The latter will require more work than the straight-forward
