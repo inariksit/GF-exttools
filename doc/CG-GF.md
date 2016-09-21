@@ -118,3 +118,175 @@ Let's think of ambiguities now. We can use the string *takaa* in utterances like
 
 If we just get a hold of the final tree, we see that sure yes, throwing some syntax helps resolve lexical ambiguity! But if we think like a CG grammarian, we don't want all the fancy structure. We just want to know: **after reading which word(s) did the parser know to discard the irrelevant analyses of** *takaa* **?**
 
+Or let's be more modest: is there even anything fancy here? Is it always the previous word? 
+
+### Something more practical
+
+Disregard the previous, let's start from a simpler grammar and a simpler formalism. Here's a simple CFG that you can read in Python NLTK, and a very realistic corpus. (Katten dog. It makes sense in Swedish.) Also I have no idea what I'm doing, I'm just thinking aloud on GitHub.
+
+```python
+grammar = nltk.CFG.fromstring("""
+ S -> NP VP
+ PP -> P NP
+ NP -> Det N | NP PP | NP N 
+ VP -> V NP | VP PP | V
+ Det -> 'a' | 'the'
+ N -> 'dog' | 'cat'
+ V -> 'chased' | 'sat' | 'dog' | 'cat'
+ P -> 'on' | 'in'
+ """)
+ corpus = "the cat dog sat"
+ ```
+
+We parse it with Earley parser.
+
+```python
+* Processing queue: 0
+
+Predictor Rule:
+|>           .           .           .| [0:0] NP -> * Det N
+|>           .           .           .| [0:0] NP -> * NP PP
+|>           .           .           .| [0:0] NP -> * NP N
+Predictor Rule:
+|>           .           .           .| [0:0] Det -> * 'the'
+```
+It's just predicting stuff to start with NP, which is how an S starts. And a NP can start only with so many ways.
+
+Now we actually read *the*. I don't know what is happening here, but the fact that 'cat' appears, suggests that the parser is doing some fancy lookahead.
+
+```haskell
+* Processing queue: 1 
+
+Scanner Rule:
+|[-----------]           .           .| [0:1] Det -> 'the' *
+Completer Rule:
+|[----------->           .           .| [0:1] NP -> Det * N
+Predictor Rule:
+|.           >           .           .| [1:1] N  -> * 'cat'
+```
+
+The completer rule tells us that the only possible analysis for the upcoming *cat* is N. We're in the middle of a NP here, give me N and no bullshit.
+
+Time to read the first ambiguous token, *cat*. Seems kind of boring cause we know already what it is.
+
+```java
+* Processing queue: 2 
+
+Scanner Rule:
+|.           [-----------]           .| [1:2] N  -> 'cat' *
+Completer Rule:
+|[-----------------------]           .| [0:2] NP -> Det N *
+```
+
+So, indeed, after reading places 0:2, we have a NP. But this may not be the full NP. We have actually 3 more completer hypotheses coming up at step 2. 
+
+```java
+Completer Rule:
+|[----------------------->           .| [0:2] S  -> NP * VP
+|[----------------------->           .| [0:2] NP -> NP * PP
+|[----------------------->           .| [0:2] NP -> NP * N
+```
+
+We may be done with the NP, and looking for a VP next. Or we may be inside a more complex NP, and just waiting to get a PP or an apposition N next. Our parser gives us a whole bunch of predictions how it might analyse the next token. The first and the last make it apparent that the parser actually knows it's going to be *dog*. But it doesn't seem to have made its mind how to parse it: both options are open.
+
+```java
+Predictor Rule:
+|.           .           >           .| [2:2] N  -> * 'dog'
+Predictor Rule:
+|.           .           >           .| [2:2] PP -> * P NP
+Predictor Rule:
+|.           .           >           .| [2:2] VP -> * V NP
+|.           .           >           .| [2:2] VP -> * VP PP
+|.           .           >           .| [2:2] VP -> * V
+Predictor Rule:
+|.           .           >           .| [2:2] V  -> * 'dog'
+```
+
+Now we can finally read the damn *dog*.
+
+
+```python
+* Processing queue: 3 
+
+Scanner Rule:
+|.           .           [-----------]| [2:3] N  -> 'dog' *
+|.           .           [-----------]| [2:3] V  -> 'dog' *
+```
+
+As hinted at the predictor rules, now the parser is considering both options. First let's see how it can complete the subclause 0:3 if *dog* is a verb:
+
+```python
+Completer Rule:
+|.         .         [--------->         .| [2:3] VP -> V * NP
+|.         .         [---------]         .| [2:3] VP -> V *
+Completer Rule:
+|[-----------------------------]         .| [0:3] S  -> NP VP *
+|.         .         [--------->         .| [2:3] VP -> VP * PP
+```
+
+It even found a S, nice. But the sentence is not complete, so it's not very helpful. *Dog* has hope of staying as a verb if the next word can be (the start of) an NP or a PP.
+
+```python
+Predictor Rule:
+|.         .         .         >         .| [3:3] PP -> * P NP
+Predictor Rule:
+|.         .         .         >         .| [3:3] NP -> * Det N
+|.         .         .         >         .| [3:3] NP -> * NP PP
+|.         .         .         >         .| [3:3] NP -> * NP N
+```
+
+The predictor rules are saying what I just said in words: continuing the hypothesis that *dog* is a V, we better have some PP or NP next, or I'll stop believing that *dog* is a verb.
+
+And now comes the other hypothesis, what if *dog* is a noun. 
+
+```python
+Completer Rule:
+|[-----------------------------]         .| [0:3] NP -> NP N *
+Completer Rule:
+|[----------------------------->         .| [0:3] S  -> NP * VP
+|[----------------------------->         .| [0:3] NP -> NP * PP
+|[----------------------------->         .| [0:3] NP -> NP * N
+```
+
+First completer rule says, "I believe that *the cat dog* is a complete NP, by rule NP -> NP N". The second completer rule says, "Ok I take your word, so here's how your cute little completion stands in the big picture. Don't think too much of yourself just because you got the ] bracket!"
+
+And here come the predictor rules for the hypothesis that *dog* is a N.
+
+```python
+Predictor Rule:
+|.         .         .         >         .| [3:3] VP -> * V NP
+|.         .         .         >         .| [3:3] VP -> * VP PP
+|.         .         .         >         .| [3:3] VP -> * V
+Predictor Rule:
+|.         .         .         >         .| [3:3] V  -> * 'sat'
+```
+
+Does something look different? There's an actual nonterminal! And there was none for the hypothesis that *dog* is V. Uh-oh. Does this little *sat* destroy the hopes for the verb version of *dog*? I can't bear the suspension...
+
+Now we enter the final phase.
+
+```haskell
+* Processing queue: 4 
+
+Scanner Rule:
+|.         .         .         [---------]| [3:4] V  -> 'sat' *
+Completer Rule:
+|.         .         .         [--------->| [3:4] VP -> V * NP
+|.         .         .         [---------]| [3:4] VP -> V *
+Completer Rule:
+|[=======================================]| [0:4] S  -> NP VP *
+```
+
+Scanner rule, understandably, doesn't include anything else because *sat* isn't ambiguous. The first completer rule is all busy looking into future, and thinking maybe there will be an NP after our SAT. Or there may not be, that's also fine.
+Second completer rule senses something special going on: we've got an S! And not just any [----] rule S, but an extra special [=====] S, spanning all the sentence from 0 to 4.
+
+At this point, some predictor rules come late to the party and try to predict some NPs or PPs, but the rest of the rules are already celebrating on the streets. We got an S! With double line! Woooo!
+Someone prints out the final solution:
+
+```haskell
+(S (NP (NP (Det the) (N cat)) (N dog)) (VP (V sat)))
+```
+
+Then everyone gets wasted and trash lots of public property. The end.
+
+I still don't know when does the parser actually decide when to give up on the hypothesis that *dog* is a verb. But assuming that things work like in this piece of fiction, maybe it could be feasible to use that info for deciding which words **syntactically** disambiguate ambiguous words?
