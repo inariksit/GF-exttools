@@ -114,7 +114,7 @@ I was browsing through papers on GF parser. The following is from [http://www.cs
 This quote explains how they manage to accept exactly "both x and y" and "either a or b",
 but no other combination of the conjunctions.
 
-Let's think of ambiguities now. We can use the string *takaa* in utterances like *300 takaa* '300 takas'; *NN takaa että <S>* 'NN guarantees that <S>', or *puun takaa* 'from behind the tree' (also 'part of the tree's taka' -- statistically this should rank much lower than the first).
+Let's think of ambiguities now. We can use the string *takaa* in utterances like *300 takaa* '300 takas'; *NN takaa että S* 'NN guarantees that S', or *puun takaa* 'from behind the tree' (also 'part of the tree's taka' -- statistically this should rank much lower than the first).
 
 If we just get a hold of the final tree, we see that sure yes, throwing some syntax helps resolve lexical ambiguity! But if we think like a CG grammarian, we don't want all the fancy structure. We just want to know: **after reading which word(s) did the parser know to discard the irrelevant analyses of** *takaa* **?**
 
