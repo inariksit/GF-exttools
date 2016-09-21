@@ -100,7 +100,7 @@ So we did the first part. How about the second?
 It might be useful to have one concrete syntax with tags and another without tags. We could now jump into the tagged grammar, but modify it for the part of `taka<n><sg><par>`, `takaa<post>`, `taata<vblex><sg><p3><pri>`: replace all of these entries with the string *takaa*. 
 Then we are in the situation where we were in the original grammar, except that the other words are tagged now.
 
-When the parsing starts, 
+I was browsing through papers on GF parser. The following is from [http://www.cse.chalmers.se/~peb/pubs/AngelovLjunglof2014a%20-%20Fast%20Statistical%20Parsing%20with.pdf](Angelov & Ljunglöf 2014):
 
 > The parsing algorithm is basically an extension of
 > Earley’s  (1970)  algorithm,  except  that  the  parse
@@ -114,12 +114,7 @@ When the parsing starts,
 This quote explains how they manage to accept exactly "both x and y" and "either a or b",
 but no other combination of the conjunctions.
 
-Let's think of ambiguities now. We can use the string *takaa* in utterances like "300 takaa", "NN takaa että ...", or "NN tuli puun takaa".
+Let's think of ambiguities now. We can use the string *takaa* in utterances like *300 takaa* '300 takas'; *NN takaa että <S>* 'NN guarantees that <S>', or *puun takaa* 'from behind the tree' (also 'part of the tree's taka' -- statistically this should rank much lower than the first).
 
-When we parse *puun takaa* in a standard GF grammar, not one with tags, we get the following parses.
-
-```haskell
-BasicPP from7behind_Prep (DetNP tree_N)          -- from behind the tree
-BasicPP part_Prep (PossNP (DetNP tree_N) taka_N) -- (a part) of the tree's taka
-```
+If we just get a hold of the final tree, we see that sure yes, throwing some syntax helps resolve lexical ambiguity! But if we think like a CG grammarian, we don't want all the fancy structure. We just want to know: **after reading which word(s) did the parser know to discard the irrelevant analyses of** *takaa* **?**
 
