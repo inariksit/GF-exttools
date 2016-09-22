@@ -261,7 +261,7 @@ Predictor Rule:
 |.         .         .         >         .| [3:3] V  -> * 'sat'
 ```
 
-Does something look different? There's an actual nonterminal! And there was none for the hypothesis that *dog* is V. Uh-oh. Does this little *sat* destroy the hopes for the verb version of *dog*? I can't bear the suspension...
+Does something look different? There's an actual terminal! And there was none for the hypothesis that *dog* is V. Uh-oh. Does this little *sat* destroy the hopes for the verb version of *dog*? I can't bear the suspension...
 
 Now we enter the final phase.
 
