@@ -194,10 +194,10 @@ choose the right agreement from the VP, depending on the subject NP.
 
 % \end{verbatim}
 
-Because of these parameters, the grammar will produce only grammatical
-sentences. Given the NP \emph{a fa} `the tree' and the verb
-\emph{szeret} `love', the grammar will output \emph{a fa szereti a
-  f\'{a}t} `the tree loves the tree'.
+\noindent These parameters prevent the grammar from overgenerating.
+Given the NP \emph{a fa} `the tree' and the verb
+\emph{szeret} `love', the grammar will only accept \emph{a fa szereti a
+  f\'{a}t} `the tree loves the tree', no other combinations of cases and verb inflections.
 
 On the high level, this grammar design looks simple. 
 But under the hood, the GF source code is compiled into a low-level

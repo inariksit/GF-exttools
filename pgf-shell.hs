@@ -96,6 +96,7 @@ analyse transducer cg word = do
                                           , std_out=CreatePipe}
 
   result <- hGetContents' out5
+  print result
   mapM_ hClose [out1,out2,out3,out4,out5]
   let lems = filter (not.null) $ split (=='^') result -- [ fa/fa<n><sg><nom>$       : unambiguous
                                                       -- , nem/nem<adv>/nem<ij>$ ]  : ambiguous
