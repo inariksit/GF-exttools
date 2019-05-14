@@ -37,8 +37,8 @@ lincat V2 = { s : Str ; compl : Str } ;
 
 fun MakeSentence : NP -> V2 -> NP -> S ;
 lin MakeSentence subj verb obj = glue subj.s "<nom>"
-                              ++ v2.s + subj.agr 
-                              ++ obj.s + v2.compl ;
+                              ++ glue v2.s subj.agr 
+                              ++ glue obj.s v2.compl ;
 ```
 
 An example of a linearisation for Hungarian:
