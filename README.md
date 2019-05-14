@@ -36,12 +36,12 @@ lincat NP = { s : Str ; agr : Str } ;
 lincat V2 = { s : Str ; compl : Str } ;
 
 fun MakeSentence : NP -> V2 -> NP -> S ;
-lin MakeSentence subj verb obj = subj.s + "<nom>"
+lin MakeSentence subj verb obj = glue subj.s "<nom>"
                               ++ v2.s + subj.agr 
                               ++ obj.s + v2.compl ;
 ```
 
-An example of how a linearisation for Hungarian:
+An example of a linearisation for Hungarian:
 ```
 Miniresource> gr -cat=S | l -bind
 a<det><def> ház<n><sg><nom> nem<adv> szeret<vblex><past><p3><sg> én<prn><pers><p1><mf><sg><acc>
